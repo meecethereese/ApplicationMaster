@@ -82,36 +82,30 @@ function deleteEmptyRows()
 function checkColors()
 {
   sheet.getRange(appTable.hdrRow, strtCol, 1, appTable.numCols - 1).setBackground(hdrClr);
-  var entryRow = sheet.getRange(appTable.entryRow, strtCol, 1, appTable.numCols - 1).getValues().flat();
-  var oldInsClr = sheet.getRange(appTable.entryRow, linkCol).getBackground();
+  sheet.getRange(appTable.entryRow, strtCol, 1, appTable.numCols - 1).setBackground(insClr);
 
-  for (let col = 0; col < entryRow.length; col++)
-    if (sheet.getRange(appTable.entryRow, col + strtCol).getBackground() != oldInsClr)
-      sheet.getRange(appTable.entryRow, col + strtCol).setBackground(errClr);
-    else
-      sheet.getRange(appTable.entryRow, col + strtCol).setBackground(insClr);
+  var status = sheet.getRange(appTable.strtRow, stsCol, sheet.getLastRow() - 1).getValues().flat();
 
-  var table = sheet.getRange(appTable.strtRow, strtCol, sheet.getLastRow() - 1, appTable.numCols - 1).getValues();
-  var oldTblClr = sheet.getRange(appTable.strtRow, linkCol).getBackground();
-
-  for (let row = 0; row < table.length; row++)
+  for (let row = 0; row < status.length; row++)
   {
-    if (table.length > 1 && row == table.length - 1)
-      break;
-    
-    var status = sheet.getRange(row + appTable.strtRow, stsCol).getValue().toLowerCase();  
+    if (status.length > 1 && row == status.length - 1)
+      break; 
 
-    for (let col = 0; col < table[row].length; col++)
-      if (status == "interviewed")
-        sheet.getRange(row + appTable.strtRow, col + strtCol).setBackground(intClr);
-      else if (status == "rejected")
-        sheet.getRange(row + appTable.strtRow, col + strtCol).setBackground(rejClr);
-      else if (col + strtCol == stsCol && status == "")
-        sheet.getRange(row + appTable.strtRow, stsCol).setBackground(tblClr);
-      else if (sheet.getRange(row + appTable.strtRow, col + strtCol).getBackground() != oldTblClr)
+    if (status[row].toLowerCase() == "interviewed")
+    {
+      sheet.getRange(row + appTable.strtRow, strtCol, 1, appTable.numCols - 1).setBackground(intClr);
+    }
+    else if (status[row].toLowerCase() == "rejected")
+    {
+      sheet.getRange(row + appTable.strtRow, strtCol, 1, appTable.numCols - 1).setBackground(rejClr);
+    }
+    else
+    {
+      sheet.getRange(row + appTable.strtRow, strtCol, 1, appTable.numCols - 1).setBackground(tblClr);
+
+      if (status[row].toLowerCase() == "Not Applied!")
         sheet.getRange(row + appTable.strtRow, stsCol).setBackground(errClr);
-      else
-        sheet.getRange(row + appTable.strtRow, col + strtCol).setBackground(tblClr);
+    }
   }
 }
 
