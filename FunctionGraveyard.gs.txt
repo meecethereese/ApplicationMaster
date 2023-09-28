@@ -1,0 +1,196 @@
+// Function Graveyard:
+
+// function formatEntryTable()
+// {
+//   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+//   var entryTableHdrs = ["Company", "Date", "Position", "Type", "Season", "ID", "Status", "Link", "Type \"insert\""];
+//   var hdrColNum = colToNum(entryTable.hdrCol);
+//   var entryColNum = colToNum(entryTable.entryCol);
+//   var hdrFont = sheet.getRange(entryTable.strtRow, hdrColNum).getFontFamily();
+//   var entryFont = sheet.getRange(entryTable.strtRow, entryColNum).getFontFamily();
+//   var hdrFontSize = sheet.getRange(entryTable.strtRow, hdrColNum).getFontSize();
+//   var entryFontSize = sheet.getRange(entryTable.strtRow, entryColNum).getFontSize();
+//   var hdrBgrColor = sheet.getRange(entryTable.strtRow, hdrColNum).getBackground();
+//   var entryBgrColor = sheet.getRange(entryTable.strtRow, entryColNum).getBackground();
+
+//   sheet.getRange(entryTable.strtRow, hdrColNum, entryTable.numRows).setHorizontalAlignment("center");
+  
+//   for (let row = 1; row <= entryTable.numRows + 1; row++)
+//   {
+//     if (row <= entryTable.numRows)
+//     {
+//       sheet.getRange(row, hdrColNum).setHorizontalAlignment("center");
+//       sheet.getRange(row, entryColNum).setHorizontalAlignment("center");
+//       sheet.getRange(row, hdrColNum, 1, entryTable.numCols).setValues([Object.values([entryTableHdrs[row-1], ""])]);
+//       sheet.getRange(row, hdrColNum, 1, entryTable.numCols).setBorder(true, true, true, true, true, true, "black", 
+//         SpreadsheetApp.BorderStyle.SOLID);
+//       sheet.getRange(row, hdrColNum).setFontFamily(hdrFont);
+//       sheet.getRange(row, entryColNum).setFontFamily(entryFont);
+//       sheet.getRange(row, hdrColNum).setFontSize(hdrFontSize);
+//       sheet.getRange(row, entryColNum).setFontSize(entryFontSize)
+//       sheet.getRange(row, hdrColNum).setBackground(hdrBgrColor);
+//       sheet.getRange(row, entryColNum).setBackground(entryBgrColor)
+//       sheet.getRange(row, hdrColNum).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
+//     }
+//     else
+//     {
+//       sheet.getRange(row, hdrColNum, 1, entryTable.numCols).setValues([Object.values(["", ""])]);
+//       sheet.getRange(row, hdrColNum).clearFormat();
+//       sheet.getRange(row, entryColNum).clearFormat();
+//     }
+//   }
+// }
+
+// function checkInsert()
+// {
+//   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
+//   var entryColNum = colToNum(entryTable.entryCol);
+//   var triggCell = sheet.getRange(entryTable.triggRow, entryColNum);
+
+//   if (triggCell.getValue() == "insert")
+//   {
+//     var appInfo = sheet.getRange(entryTable.strtRow, colToNum(entryTable.entryCol), entryTable.numRows - 1).getValues().flat();
+
+//     if (appInfo[entryTable.cmpnyRow-1] == "")
+//     {
+//       sheet.getRange(entryTable.cmpnyRow, colToNum(entryTable.hdrCol)).setValue("Please insert a company");
+//       return;
+//     }
+
+//     if (appInfo[entryTable.dateRow-1] instanceof Object)
+//     {
+//       var timeZone = appInfo[entryTable.dateRow-1].toString().split(" ")[5];
+//       appInfo[entryTable.dateRow-1] = Utilities.formatDate(appInfo[entryTable.dateRow-1], timeZone, "MM/dd/yyyy").split("/");
+//     }
+//     else if (appInfo[entryTable.dateRow-1] != "")
+//     {
+//       sheet.getRange(entryTable.dateRow, colToNum(entryTable.hdrCol)).setValue("Please insert a valid date");
+//       sheet.getRange(entryTable.dateRow, colToNum(entryTable.hdrCol)).setBackground('#ffbaba');
+//       return;
+//     }
+
+//     addAppInfo(appInfo);
+//     formatEntryTable();
+//   }
+//   else if (triggCell.getValues().flat()[0] != "")
+//   {
+//     sheet.getRange(entryTable.triggRow, colToNum(entryTable.hdrCol)).setValue("Please type \"insert\"");
+//   }
+// }
+
+// function checkStatusColor(sheet)
+// { 
+//   var companies = sheet.getRange(appTable.hdrRow + 1, colToNum(appTable.cmpnyCol), sheet.getLastRow() - 1).getValues().flat();
+//   var dates = sheet.getRange(appTable.hdrRow + 1, colToNum(appTable.dateCol), sheet.getLastRow() - 1).getValues().flat();
+  
+//   for (let i = 0; i < dates.length; i++)
+//   {
+//     var row = i + 2;
+//     let stsCell = sheet.getRange(row, colToNum(appTable.stsCol));
+
+//     if (companies[i] != "" && dates[i] == "")
+//     {
+//       stsCell.setHorizontalAlignment("center");
+//       stsCell.setValue("Not Applied!");
+//       stsCell.setBackground('#FFBABA');
+//     }
+//     else if (companies[i] != "")
+//     {
+//       bgrColor = sheet.getRange(appTable.hdrRow + 1, colToNum(appTable.strtCol)).getBackground();
+//       stsCell.setBackground(bgrColor);
+//     }
+//   }  
+// }
+
+// function getAppInputs() 
+// {
+//   // Create a custom user interface
+//   var htmlOutput = HtmlService.createHtmlOutputFromFile('InputForm')
+//       .setWidth(500)
+//       .setHeight(200);
+  
+//   SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Enter Application Data');
+// }
+
+// function insertDataAlphabetically(dataObj, headers)
+// {
+//   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+//   var sheet = spreadsheet.getActiveSheet();
+
+//   if (sheet.getLastRow() - 1 == 0)
+//   {
+//     sheet.getRange(2, 1, 1, headers.length).setValues([Object.values(dataObj)]);
+//     return;
+//   }
+
+//   // Organize by company name and dates first
+//   var companyRange = sheet.getRange(2, 1, sheet.getLastRow() - 1);
+//   var companies = companyRange.getValues();
+
+//   var dateRange = sheet.getRange(2, 2, sheet.getLastRow());
+//   var dates = dateRange.getValues();
+  
+//   var row = findInsertIndex(companies, dates, dataObj[headers[0]], dataObj[headers[1]]) + 2;
+ 
+//   sheet.insertRows(row);
+
+//   sheet.getRange(row, 1, 1, headers.length).setValues([Object.values(dataObj)]);
+// }
+
+// function findInsertIndex(companies, dates, company, date)
+// {
+//   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+//   var sheet = spreadsheet.getActiveSheet();
+//   var index;
+//   Logger.log(companies);
+//   Logger.log(companies[0][0] == company);
+//   var cmp = "" + companies[0][0];
+//   Logger.log(cmp);
+//   Logger.log(cmp == company);
+//   Logger.log(typeof(company) + typeof(company[0][0]) + typeof(company[0][1]));
+//   for (index = 0; index < companies[0].length; index++)
+//     if (companies[0][index] >= company)
+//       break;
+  
+//   Logger.log(dates);
+//   var mdyIp = date.split("/");
+//   while (companies[0][index] == company)
+//   {
+//     var mdy = Utilities.formatDate(dates[0][index], "GMT-05:00", "MM/dd/yyyy").split("/");
+
+//     if (mdy[2] < mdyIp[2])
+//     {
+//       sheet.getRange(index+10, 4, 1, 1).setValue("input year is greater" + index);
+//       index++;
+//       continue;
+//     }
+//     else if (mdy[2] == mdyIp[2])
+//     {
+//       sheet.getRange(index+10, 4, 1, 1).setValue("year was equal");
+//       if (mdy[0] < mdyIp[0])
+//       {
+//         index++;
+//         continue;
+//       }
+//       else if (mdy[0] == mdy[0])
+//       {
+//         sheet.getRange(index+10, 5, 1, 1).setValue("month was equal");
+//         if (mdy[1] < mdyIp[1])
+//         {
+//           Logger.log(index);
+//           sheet.getRange(index+10, 6, 1, 1).setValue("day was less" + index);
+//           index++;
+//           continue;
+//         }
+//         else
+//           break;
+//       }
+//       else
+//         break;
+//     }
+//     else
+//       break;
+//   }
+//   Logger.log(index);
+//   return index;
+// }

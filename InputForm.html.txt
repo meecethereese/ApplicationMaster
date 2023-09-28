@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { background-color: #FFFFFF; }
+
+      input, select { text-align: center; }
+
+      #month, #day, #year { width: 50px; }
+    </style>
+  </head>
+  <body>
+    <form id="inputForm">
+      <label for="company">Company</label><br>
+      <input type="text" id="company" name="company" required><br><br>
+
+      <label for="date">Date Applied</label><br>
+      <input type="text" id="month" name="month" required placeholder="MM">
+      <input type="text" id="day" name="day" required placeholder="DD">
+      <input type="text" id="year" name="year" required placeholder="YYYY"><br><br>
+
+      <label for="position">Position</label><br>
+      <input type="text" id="position" name="position"><br><br>
+
+      <label for="season">Season</label><br>
+      <input type="text" id="season" name="season"><br><br>
+
+      <label for="id">ID</label><br>
+      <input type="text" id="id" name="id"><br><br>
+
+      <label for="status">Status</label><br>
+      <select id="status" name="status">
+        <option value="Applied">Applied</option>
+        <option value="Interview">Interview</option>
+        <option value="Accepted">Accepted</option>
+        <option value="Rejected">Rejected</option>
+      </select><br><br>
+
+      <label for="link">Link</label><br>
+      <input type="text" id="link" name="link"><br><br>
+
+      <input type="submit" value="Submit">
+    </form>
+
+    <script>
+      document.getElementById("inputForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+        var form = document.getElementById("inputForm");
+        google.script.run.submitForm([form.company.value, form.month.value, form.day.value, form.year.value, form.position.value, form.season.value,
+          form.id.value, form.status.value, form.link.value]);
+        google.script.host.close();
+      });
+    </script>
+  </body>
+</html>

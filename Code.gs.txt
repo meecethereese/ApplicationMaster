@@ -1,0 +1,381 @@
+const sheet = SpreadsheetApp.getActiveSheet();
+const appTable = { hdrRow: 1, entryRow: 2, strtRow: 3, numCols: 9, strtCol: "B", cmpnyCol: "B", dateCol: "C", posCol: "D", typeCol: "E", 
+  seasonCol: "F", idCol: "G", stsCol: "H", linkCol: "I", insCol: "J" };
+const colors = { lblRow: 1, clrRow: 2, updCol: "K", hdrClrCol: "L", insClrCol: "M", tblClrCol: "N" , errClrCol: "O", rejClrCol: "P", 
+  intClrCol: "Q" };
+const white = '#ffffff';
+
+function colToNum(col)
+{
+  var num = 0;
+  var offset = 1;
+
+  for (let i = col.length - 1, j = 0; i >= 0; i--, j++)
+  {
+    var charNum = col[i].charCodeAt(0) - 'A'.charCodeAt(0) + 1;
+
+    if (i < col.length - 1)
+      offset *= 26;
+    
+    num += charNum * offset;
+  }
+  
+  return num;
+}
+
+const strtCol = colToNum(appTable.strtCol);
+const cmpnyCol = colToNum(appTable.cmpnyCol);
+const dateCol = colToNum(appTable.dateCol);
+const posCol = colToNum(appTable.posCol);
+const typeCol = colToNum(appTable.typeCol);
+const seasonCol = colToNum(appTable.seasonCol);
+const idCol = colToNum(appTable.idCol);
+const stsCol = colToNum(appTable.stsCol);
+const linkCol = colToNum(appTable.linkCol);
+const insCol = colToNum(appTable.insCol);
+const updCol = colToNum(colors.updCol);
+const hdrClr = sheet.getRange(colors.clrRow, colToNum(colors.hdrClrCol)).getBackground();
+const insClr = sheet.getRange(colors.clrRow, colToNum(colors.insClrCol)).getBackground();
+const tblClr = sheet.getRange(colors.clrRow, colToNum(colors.tblClrCol)).getBackground();
+const errClr = sheet.getRange(colors.clrRow, colToNum(colors.errClrCol)).getBackground();
+const rejClr = sheet.getRange(colors.clrRow, colToNum(colors.rejClrCol)).getBackground();
+const intClr = sheet.getRange(colors.clrRow, colToNum(colors.intClrCol)).getBackground();
+
+function deleteEmptyRows() 
+{
+  var rows = sheet.getRange(appTable.strtRow, strtCol, sheet.getLastRow() - 1, appTable.numCols - 1).getValues();
+
+  if (rows.length == 1)
+    return false;
+
+  for (let row = rows.length - 1; row >= 0; row--)
+    if (sheet.getRange(row + appTable.strtRow, strtCol).getBackground() != '#ffffff')
+    {
+      var isEmpty = true;
+      var cmpnyFlag = false;
+
+      for (let col = 0; col < rows[row].length; col++)
+        if (rows[row][col] != "")
+        {
+          isEmpty = false;
+          break;
+        }
+        else if (col == cmpnyCol - strtCol)
+        {
+          cmpnyFlag = true;
+        }
+      
+      if (isEmpty && !(row == 0 && sheet.getRange(appTable.strtRow + 1, strtCol).getBackground() == white))
+      {
+        sheet.deleteRow(row + appTable.strtRow);
+      }
+      else if (isEmpty == false && cmpnyFlag)
+      {
+        sheet.getRange(row + appTable.strtRow, cmpnyCol).setValue("Please insert a company");
+        sheet.getRange(row + appTable.strtRow, cmpnyCol).setBackground(errClr);
+      }
+    }
+  
+  return true;
+}
+
+function checkColors()
+{
+  sheet.getRange(appTable.hdrRow, strtCol, 1, appTable.numCols - 1).setBackground(hdrClr);
+  var entryRow = sheet.getRange(appTable.entryRow, strtCol, 1, appTable.numCols - 1).getValues().flat();
+  var oldInsClr = sheet.getRange(appTable.entryRow, linkCol).getBackground();
+
+  for (let col = 0; col < entryRow.length; col++)
+    if (sheet.getRange(appTable.entryRow, col + strtCol).getBackground() != oldInsClr)
+      sheet.getRange(appTable.entryRow, col + strtCol).setBackground(errClr);
+    else
+      sheet.getRange(appTable.entryRow, col + strtCol).setBackground(insClr);
+
+  var table = sheet.getRange(appTable.strtRow, strtCol, sheet.getLastRow() - 1, appTable.numCols - 1).getValues();
+  var oldTblClr = sheet.getRange(appTable.strtRow, linkCol).getBackground();
+
+  for (let row = 0; row < table.length; row++)
+  {
+    if (table.length > 1 && row == table.length - 1)
+      break;
+    
+    var status = sheet.getRange(row + appTable.strtRow, stsCol).getValue().toLowerCase();  
+
+    for (let col = 0; col < table[row].length; col++)
+      if (status == "interviewed")
+        sheet.getRange(row + appTable.strtRow, col + strtCol).setBackground(intClr);
+      else if (status == "rejected")
+        sheet.getRange(row + appTable.strtRow, col + strtCol).setBackground(rejClr);
+      else if (col + strtCol == stsCol && status == "")
+        sheet.getRange(row + appTable.strtRow, stsCol).setBackground(tblClr);
+      else if (sheet.getRange(row + appTable.strtRow, col + strtCol).getBackground() != oldTblClr)
+        sheet.getRange(row + appTable.strtRow, stsCol).setBackground(errClr);
+      else
+        sheet.getRange(row + appTable.strtRow, col + strtCol).setBackground(tblClr);
+  }
+}
+
+function findInsertIndex(company, companies, date, dates, position, positions)
+{
+  // Find insertion index in column A
+  let idx = 0;
+
+  for (; idx < companies.length; idx++)
+    if (company.toLowerCase() <= companies[idx].toLowerCase() || companies[idx] == "")
+      break;
+
+  var ipMonth, ipDay, ipYear, month, day, year;
+
+  if (date != "")
+  {
+    ipMonth = date[0];
+    ipDay = date[1];
+    ipYear = date[2];
+  }
+
+  while (idx < companies.length && company.toLowerCase() == companies[idx].toLowerCase() && date != "")
+  {
+    if (dates[idx] == "")
+    {
+      idx++;
+      continue;
+    }
+
+    var timeZone = dates[idx].toString().split(" ")[5];
+    var mdy = Utilities.formatDate(dates[idx], timeZone, "MM/dd/yyyy").split("/");
+    month = parseInt(mdy[0]);
+    day = parseInt(mdy[1]);
+    year = parseInt(mdy[2]);
+
+    if (ipYear == year)
+    {
+      if (ipMonth == month)
+      {
+        if (ipDay >= day)
+        {
+          break;
+        }
+        else
+        {
+          idx++;
+          continue;
+        }
+      }
+      else if (ipMonth > month)
+      {
+        break;
+      }
+      else
+      {
+        idx++;
+        continue;
+      }
+    }
+    else if (ipYear > year)
+    {
+      break;
+    }
+    else
+    {
+      idx++;
+      continue;
+    }
+  }
+
+  while (idx < companies.length && company.toLowerCase() == companies[idx].toLowerCase() && (date == "" ? (date == dates[idx]): (ipYear == year && 
+    ipMonth == month && ipDay == day)))
+  {
+    if (dates[idx+1] != "")
+    {
+      var timeZone = dates[idx+1].toString().split(" ")[5];
+      var mdy = Utilities.formatDate(dates[idx+1], timeZone, "MM/dd/yyyy").split("/");
+      month = parseInt(mdy[0]);
+      day = parseInt(mdy[1]);
+      year = parseInt(mdy[2]);
+    }
+
+    if (position.toLowerCase() <= positions[idx].toLowerCase())
+      break;
+    else
+      idx++;
+  }
+
+  return idx;
+}
+
+function addAppInfo(appInfo) 
+{
+  var companies = sheet.getRange(appTable.strtRow, cmpnyCol, sheet.getLastRow() - 1).getValues().flat();
+  var dates = sheet.getRange(appTable.strtRow, dateCol, sheet.getLastRow() - 1).getValues().flat();
+  var positions = sheet.getRange(appTable.strtRow, posCol, sheet.getLastRow() - 1).getValues().flat();
+
+  var insRow = findInsertIndex(appInfo[cmpnyCol-strtCol], companies, appInfo[dateCol-strtCol], dates, appInfo[posCol-strtCol], positions) +  
+    appTable.strtRow;
+  var insRange = sheet.getRange(insRow, strtCol, 1, appTable.numCols - 1);
+
+  if (appInfo[dateCol-strtCol] != "")
+    appInfo[dateCol-strtCol] = appInfo[dateCol-strtCol].join("/");
+  
+  if (insRow == appTable.strtRow)
+  {
+    if (sheet.getRange(appTable.strtRow, cmpnyCol).getValue() != "")
+      sheet.insertRows(insRow);
+    
+    if (appInfo[stsCol-strtCol].toLowerCase() == "interviewed")
+      insRange.setBackground(intClr);
+    else if (appInfo[stsCol-strtCol].toLowerCase() == "rejected")
+      insRange.setBackground(rejClr);
+    else
+      insRange.setBackground(tblClr);
+      
+    insRange.setBorder(true, true, true, true, true, true, "black", SpreadsheetApp.BorderStyle.SOLID);
+    insRange.setHorizontalAlignment("center");
+    insRange.setValues([Object.values(appInfo)]);
+  }
+  else
+  {
+    sheet.insertRows(insRow);
+
+    if (appInfo[stsCol-strtCol].toLowerCase() == "interviewed")
+      insRange.setBackground(intClr);
+    else if (appInfo[stsCol-strtCol].toLowerCase() == "rejected")
+      insRange.setBackground(rejClr);
+    else
+      insRange.setBackground(tblClr);
+
+    insRange.setBorder(true, true, true, true, true, true, "black", SpreadsheetApp.BorderStyle.SOLID);
+    insRange.setHorizontalAlignment("center");
+    insRange.setValues([Object.values(appInfo)]);
+  }
+
+  var stsCell = sheet.getRange(insRow, stsCol);
+
+  if (appInfo[dateCol-strtCol] == "")
+  {
+    stsCell.setValue("Not Applied!");
+    stsCell.setBackground(errClr);
+  }
+  else if (appInfo[stsCol-strtCol] == "Not Applied!")
+  {
+    stsCell.setValue("");
+  }
+}
+
+function onEdit(e)
+{
+  var editRow = e.range.getRow();
+  var editCol = e.range.getColumn();
+  var whiteFlag = (sheet.getRange(editRow, editCol).getBackground() != white);
+  var moreThanOneFlag = true;
+
+  if (sheet.getName() != "Companies" && whiteFlag)
+    moreThanOneFlag = deleteEmptyRows();
+
+  whiteFlag = (sheet.getRange(editRow, editCol).getBackground() != white);
+
+  if (sheet.getName() != "Companies" && editRow == colors.clrRow && editCol == updCol)
+  {
+    var cell = sheet.getRange(editRow, updCol);
+
+    if (cell.getValue().toLowerCase() != "update" && cell.getValue() != "")
+    {
+      sheet.getRange(colors.lblRow, updCol).setValue("Please type \"update\"");
+      return;
+    }
+    else if (cell.getValue().toLowerCase() == "update")
+    {
+      checkColors();
+    }
+
+    cell.setValue("");
+    cell.setHorizontalAlignment("center");
+    sheet.getRange(colors.lblRow, editCol).setValue("Type \"update\" to change colors \u2193");
+  }
+  
+  if (sheet.getName() != "Companies" && editRow == appTable.entryRow && (editCol == insCol || editCol == cmpnyCol || editCol == dateCol))
+  {
+    if (sheet.getRange(editRow, insCol).getValue().toLowerCase() != "insert")
+    {
+      if (sheet.getRange(editRow, insCol).getValue().toLowerCase() != "")
+        sheet.getRange(appTable.hdrRow, insCol).setValue("Please type \"insert\"");
+      
+      return;
+    }
+
+    var appInfo = sheet.getRange(editRow, strtCol, 1, appTable.numCols - 1).getValues().flat();
+
+    if (appInfo[cmpnyCol-strtCol] == "")
+    {
+      sheet.getRange(editRow, cmpnyCol).setValue("Please insert a company");
+      sheet.getRange(editRow, cmpnyCol).setBackground(errClr);
+      return;
+    }
+
+    if (appInfo[dateCol-strtCol] instanceof Object)
+    {
+      var timeZone = appInfo[dateCol-strtCol].toString().split("")[5];
+      appInfo[dateCol-strtCol] = Utilities.formatDate(appInfo[dateCol-strtCol], timeZone, "MM/dd/yyyy").split("/");
+    }
+    else if (appInfo[dateCol-strtCol] != "")
+    {
+      sheet.getRange(editRow, dateCol).setValue("Please insert a date");
+      sheet.getRange(editRow, dateCol).setBackground(errClr);
+      return;
+    }
+
+    for (let col = insCol; col >= strtCol; col--)
+      sheet.getRange(editRow, col).setValue("");
+    
+    sheet.getRange(editRow, strtCol, 1, appTable.numCols - 1).setBackground(insClr);
+    sheet.getRange(editRow, strtCol, 1, appTable.numCols).setHorizontalAlignment("center");
+    
+    addAppInfo(appInfo);
+
+    sheet.getRange(appTable.hdrRow, insCol).setValue("Type \"insert\" when ready \u2193");
+  }
+  else if (sheet.getName() != "Companies" && whiteFlag && moreThanOneFlag && editRow != appTable.hdrRow && editRow != appTable.entryRow && 
+    (editCol == cmpnyCol || editCol == dateCol || editCol == posCol))
+  {
+    var appInfo = sheet.getRange(editRow, colToNum(appTable.strtCol), 1, appTable.numCols - 1).getValues().flat();
+
+    if (appInfo[cmpnyCol-strtCol] == "")
+    {
+      sheet.getRange(editRow, cmpnyCol).setValue("Please insert a company");
+      sheet.getRange(editRow, cmpnyCol).setBackground(errClr)
+      return;
+    }
+    else if (appInfo[cmpnyCol-strtCol] == "Please insert a company")
+    {
+      return;
+    }
+
+    if (appInfo[dateCol-strtCol] instanceof Object)
+    {
+      var timeZone = appInfo[dateCol-strtCol].toString().split("")[5];
+      appInfo[dateCol-strtCol] = Utilities.formatDate(appInfo[dateCol-strtCol], timeZone, "MM/dd/yyyy").split("/");
+    }
+    else if (appInfo[dateCol-strtCol] != "")
+    {
+      sheet.getRange(editRow, dateCol).setValue("Please insert a date");
+      sheet.getRange(editRow, dateCol).setBackground(errClr);
+      return;
+    }
+    
+    sheet.deleteRow(editRow);
+    addAppInfo(appInfo);
+  }
+  else if (sheet.getName() != "Companies" && whiteFlag && editRow != appTable.hdrRow && editRow != appTable.entryRow && editCol == stsCol)
+  {
+    var rowRange = sheet.getRange(editRow, strtCol, 1, appTable.numCols - 1);
+    var status = sheet.getRange(editRow, stsCol).getValue().toLowerCase();
+
+    if (status == "interviewed")
+      rowRange.setBackground(intClr);
+    else if (status == "rejected")
+      rowRange.setBackground(rejClr);
+    else if (status.indexOf("not applied") != -1)
+      sheet.getRange(editRow, stsCol).setBackground(errClr);
+    else
+      rowRange.setBackground(tblClr);
+  }
+}
