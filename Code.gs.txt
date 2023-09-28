@@ -10,7 +10,7 @@ function colToNum(col)
   var num = 0;
   var offset = 1;
 
-  for (let i = col.length - 1, j = 0; i >= 0; i--, j++)
+  for (let i = col.length - 1; i >= 0; i--)
   {
     var charNum = col[i].charCodeAt(0) - 'A'.charCodeAt(0) + 1;
 
