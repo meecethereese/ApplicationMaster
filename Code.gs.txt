@@ -3,7 +3,10 @@ const appTable = { hdrRow: 1, entryRow: 2, strtRow: 3, numCols: 9, strtCol: "B",
   seasonCol: "F", idCol: "G", stsCol: "H", linkCol: "I", insCol: "J" };
 const colors = { lblRow: 1, clrRow: 2, updCol: "K", hdrClrCol: "L", insClrCol: "M", tblClrCol: "N" , errClrCol: "O", rejClrCol: "P", 
   intClrCol: "Q" };
+const shpeTable = { hdrRow: 1, strtRow: 2, numCols: 3, cmpnyCol: "A", linkCol: "B", intCol: "C" };
 const white = '#ffffff';
+const darkGrnOne = '#6aa84f';
+const darkRedOne = '#cc0000';
 
 function colToNum(col)
 {
@@ -34,6 +37,9 @@ const stsCol = colToNum(appTable.stsCol);
 const linkCol = colToNum(appTable.linkCol);
 const insCol = colToNum(appTable.insCol);
 const updCol = colToNum(colors.updCol);
+const shpeCmpnyCol = colToNum(shpeTable.cmpnyCol);
+const shpeLinkCol = colToNum(shpeTable.linkCol);
+const shpeIntCol = colToNum(shpeTable.intCol);
 const hdrClr = sheet.getRange(colors.clrRow, colToNum(colors.hdrClrCol)).getBackground();
 const insClr = sheet.getRange(colors.clrRow, colToNum(colors.insClrCol)).getBackground();
 const tblClr = sheet.getRange(colors.clrRow, colToNum(colors.tblClrCol)).getBackground();
@@ -261,6 +267,25 @@ function onEdit(e)
   var editCol = e.range.getColumn();
   var whiteFlag = (sheet.getRange(editRow, editCol).getBackground() != white);
   var moreThanOneFlag = true;
+
+  if (sheet.getName() == "Companies" && editRow != shpeTable.hdrRow && editCol == shpeIntCol)
+  {
+    var shpeIntCell = sheet.getRange(editRow, shpeIntCol);
+    var val = shpeIntCell.getValue();
+
+    if (val == "y")
+    {
+      shpeIntCell.setHorizontalAlignment("center");
+      shpeIntCell.setValue("Yes");
+      shpeIntCell.setBackground(darkGrnOne);
+    }
+    else if (val == "n")
+    {
+      shpeIntCell.setHorizontalAlignment("center");
+      shpeIntCell.setValue("No");
+      shpeIntCell.setBackground(darkRedOne);
+    }
+  }
 
   if (sheet.getName() != "Companies" && whiteFlag)
     moreThanOneFlag = deleteEmptyRows();
