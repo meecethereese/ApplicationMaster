@@ -271,15 +271,15 @@ function onEdit(e)
   if (sheet.getName() == "Companies" && editRow != shpeTable.hdrRow && editCol == shpeIntCol)
   {
     var shpeIntCell = sheet.getRange(editRow, shpeIntCol);
-    var val = shpeIntCell.getValue();
+    var val = shpeIntCell.getValue().toLowerCase();
 
-    if (val == "y")
+    if (val.indexOf("y") != -1)
     {
       shpeIntCell.setHorizontalAlignment("center");
       shpeIntCell.setValue("Yes");
       shpeIntCell.setBackground(darkGrnOne);
     }
-    else if (val == "n")
+    else if (val.indexOf("n") != -1)
     {
       shpeIntCell.setHorizontalAlignment("center");
       shpeIntCell.setValue("No");
