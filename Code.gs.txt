@@ -349,6 +349,7 @@ function onEdit(e)
     sheet.getRange(editRow, strtCol, 1, appTable.numCols - 1).setBorder(true, true, true, true, true, true, "black", 
       SpreadsheetApp.BorderStyle.SOLID);
     sheet.getRange(editRow, strtCol, 1, appTable.numCols).setHorizontalAlignment("center");
+    sheet.getRange(editRow, strtCol, 1, appTable.numCols - 1).setFontFamily("Arial");
     
     addAppInfo(appInfo);
 
