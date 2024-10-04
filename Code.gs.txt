@@ -2,7 +2,7 @@ const sheet = SpreadsheetApp.getActiveSheet();
 const appTable = { hdrRow: 1, entryRow: 2, strtRow: 3, numCols: 9, strtCol: "B", cmpnyCol: "B", dateCol: "C", posCol: "D", typeCol: "E", 
   seasonCol: "F", idCol: "G", stsCol: "H", linkCol: "I", insCol: "J" };
 const colors = { lblRow: 1, clrRow: 2, updCol: "K", hdrClrCol: "L", insClrCol: "M", tblClrCol: "N" , errClrCol: "O", rejClrCol: "P", 
-  intClrCol: "Q" };
+  assClrCol: "Q", intClrCol: "R", offClrCol: "S" };
 const shpeTable = { hdrRow: 1, strtRow: 2, numCols: 3, cmpnyCol: "A", linkCol: "B", intCol: "C" };
 const white = '#ffffff';
 const darkGrnOne = '#6aa84f';
@@ -45,7 +45,9 @@ const insClr = sheet.getRange(colors.clrRow, colToNum(colors.insClrCol)).getBack
 const tblClr = sheet.getRange(colors.clrRow, colToNum(colors.tblClrCol)).getBackground();
 const errClr = sheet.getRange(colors.clrRow, colToNum(colors.errClrCol)).getBackground();
 const rejClr = sheet.getRange(colors.clrRow, colToNum(colors.rejClrCol)).getBackground();
+const assClr = sheet.getRange(colors.clrRow, colToNum(colors.assClrCol)).getBackground();
 const intClr = sheet.getRange(colors.clrRow, colToNum(colors.intClrCol)).getBackground();
+const offClr = sheet.getRange(colors.clrRow, colToNum(colors.offClrCol)).getBackground();
 
 function deleteEmptyRows() 
 {
@@ -101,15 +103,23 @@ function checkColors()
     {
       sheet.getRange(row + appTable.strtRow, strtCol, 1, appTable.numCols - 1).setBackground(intClr);
     }
+    else if (status[row].toLowerCase() == "assessed")
+    {
+      sheet.getRange(row + appTable.strtRow, strtCol, 1, appTable.numCols - 1).setBackground(assClr);    
+    }
     else if (status[row].toLowerCase() == "rejected")
     {
       sheet.getRange(row + appTable.strtRow, strtCol, 1, appTable.numCols - 1).setBackground(rejClr);
+    }
+    else if (status[row].toLowerCase() == "offered")
+    {
+      sheet.getRange(row + appTable.strtRow, strtCol, 1, appTable.numCols - 1).setBackground(offClr);
     }
     else
     {
       sheet.getRange(row + appTable.strtRow, strtCol, 1, appTable.numCols - 1).setBackground(tblClr);
 
-      if (status[row].toLowerCase() == "Not Applied!")
+      if (status[row].toLowerCase() == "not applied!")
         sheet.getRange(row + appTable.strtRow, stsCol).setBackground(errClr);
     }
   }
@@ -225,6 +235,8 @@ function addAppInfo(appInfo)
       insRange.setBackground(intClr);
     else if (appInfo[stsCol-strtCol].toLowerCase() == "rejected")
       insRange.setBackground(rejClr);
+    else if (appInfo[stsCol-strtCol].toLowerCase() == "offered")
+      insRange.setBackground(offClr);
     else
       insRange.setBackground(tblClr);
       
@@ -240,6 +252,8 @@ function addAppInfo(appInfo)
       insRange.setBackground(intClr);
     else if (appInfo[stsCol-strtCol].toLowerCase() == "rejected")
       insRange.setBackground(rejClr);
+    else if (appInfo[stsCol-strtCol].toLowerCase() == "offered")
+      insRange.setBackground(offClr);
     else
       insRange.setBackground(tblClr);
 
@@ -335,7 +349,7 @@ function onEdit(e)
       var timeZone = appInfo[dateCol-strtCol].toString().split("")[5];
       appInfo[dateCol-strtCol] = Utilities.formatDate(appInfo[dateCol-strtCol], timeZone, "MM/dd/yyyy").split("/");
     }
-    else if (appInfo[dateCol-strtCol] != "")
+    else if (appInfo[dateCol-strtCol] == "")
     {
       sheet.getRange(editRow, dateCol).setValue("Please insert a date");
       sheet.getRange(editRow, dateCol).setBackground(errClr);
@@ -376,7 +390,7 @@ function onEdit(e)
       var timeZone = appInfo[dateCol-strtCol].toString().split("")[5];
       appInfo[dateCol-strtCol] = Utilities.formatDate(appInfo[dateCol-strtCol], timeZone, "MM/dd/yyyy").split("/");
     }
-    else if (appInfo[dateCol-strtCol] != "")
+    else if (appInfo[dateCol-strtCol] == "")
     {
       sheet.getRange(editRow, dateCol).setValue("Please insert a date");
       sheet.getRange(editRow, dateCol).setBackground(errClr);
@@ -393,8 +407,12 @@ function onEdit(e)
 
     if (status == "interviewed")
       rowRange.setBackground(intClr);
+    else if (status == "assessed")
+      rowRange.setBackground(assClr);
     else if (status == "rejected")
       rowRange.setBackground(rejClr);
+    else if (status == "offered")
+      rowRange.setBackground(offClr);
     else if (status.indexOf("not applied") != -1)
       sheet.getRange(editRow, stsCol).setBackground(errClr);
     else
